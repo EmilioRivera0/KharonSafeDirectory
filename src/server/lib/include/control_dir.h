@@ -6,9 +6,11 @@
 #include "server_structs.h"
 #include "server_exceptions.h"
 
-#include <unistd.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 #include <cstring>
 #include <cerrno>
@@ -17,6 +19,7 @@
 #include <vector>
 
 // functions declaration -------->
-void control_directory(const char*, std::vector<struct file_path*>&);
+void control_directory(const char*, std::vector<struct file_info*>&);
+void create_log_file(void);
 
 #endif // !CONTROL_DIR_H

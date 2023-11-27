@@ -1,2 +1,2 @@
 #! /bin/bash
-g++ -o Client ../main.cpp
+g++ -o Client ../main.cpp ../lib/src/client_excpetions.cpp

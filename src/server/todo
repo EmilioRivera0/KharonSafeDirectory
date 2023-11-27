@@ -1,1 +1,6 @@
+make the server check if another instance is already running
+make the client check if server is up
+check if memory can be deallocated from a thread
 free file_name & absolute_path pointers from file_path struct as well as the entire struct
+maybe borra filename the la estructura file_path
+recordar porque se abre el semáforo en cada hilo (porque no se comparte el stack entre hilos)
