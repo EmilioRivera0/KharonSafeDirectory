@@ -12,10 +12,37 @@ void create_log_file(){
   close(fd);
 }
 
+void share_dir_entrys(std::vector<struct file_info*>& dir_entrys){
+  // local variables
+  int shm_fd{0};
+  char buffer[BUFFER_LENGTH]{};
+  // remove random values from buffer
+  memset(buffer, '\0', BUFFER_LENGTH);
+  // create shm
+  shm_fd = shm_open(SHM, SHM_FLAGS, SHM_PERMISSIONS);
+  if (shm_fd == ERROR) {
+    std::cout << "\nCould not create SHM " << SHM << ": ";
+    throw exc::ServerException(strerror(errno));
+  }
+  // truncate shm to BUFFER_LENGTH size
+  if (ftruncate(shm_fd, BUFFER_LENGTH) == ERROR){
+    std::cout << "\nCould not truncate SHM " << SHM << ": ";
+    throw exc::ServerException(strerror(errno));
+  }
+  // write file entrys into local buffer
+  for (const struct file_info *it : dir_entrys){
+    strcat(buffer, it->file_name);
+    strcat(buffer, "-");
+  }
+  // write local buffer into shm
+  write(shm_fd, buffer, BUFFER_LENGTH);
+  // close shm
+  close(shm_fd);
+}
+
 void control_directory(const char* dir_name, std::vector<struct file_info*>& dir_entrys){
   // local variables
   short fn_len{0}, ap_len{0}, sm_len{0};
-  int shm_fd{0};
   char abs_path[BUFFER_LENGTH];
   char file_semaphore[BUFFER_LENGTH];
   char format[] = "/";
@@ -25,16 +52,6 @@ void control_directory(const char* dir_name, std::vector<struct file_info*>& dir
 
   // create log file
   create_log_file();
-  // create shm
-  shm_fd = shm_open(SHM, SHM_FLAGS, SHM_PERMISSIONS);
-  if (shm_fd == ERROR) {
-    std::cout << "\nCould not create SHM " << SHM << ": ";
-    throw exc::ServerException(strerror(errno));
-  }
-  if (ftruncate(shm_fd, BUFFER_LENGTH) == ERROR){
-    std::cout << "\nCould not truncate SHM " << SHM << ": ";
-    throw exc::ServerException(strerror(errno));
-  }
 
   // open directory and verify if it exists or the program can interact with it
   dir = opendir(dir_name);
@@ -42,6 +59,7 @@ void control_directory(const char* dir_name, std::vector<struct file_info*>& dir
     std::cout << "\nCould not open directory: ";
     throw exc::ServerException(strerror(errno));
   }
+
   // change owner and group of the directory
   if (chown(dir_name, ROOT_UID, ROOT_GID) == ERROR) {
     std::cout << "\nCould not change owner and group of " << dir_name << ": ";
@@ -93,6 +111,8 @@ void control_directory(const char* dir_name, std::vector<struct file_info*>& dir
       throw exc::ServerException(strerror(errno));
     }
   }
+  // close directory
   closedir(dir);
-  close(shm_fd);
+  // share directory entrys in shm
+  share_dir_entrys(dir_entrys);
 }

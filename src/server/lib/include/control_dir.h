@@ -19,7 +19,8 @@
 #include <vector>
 
 // functions declaration -------->
-void control_directory(const char*, std::vector<struct file_info*>&);
 void create_log_file(void);
+void share_dir_entrys(std::vector<struct file_info*>&);
+void control_directory(const char*, std::vector<struct file_info*>&);
 
 #endif // !CONTROL_DIR_H
