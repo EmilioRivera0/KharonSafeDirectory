@@ -12,7 +12,7 @@ void create_log_file(){
   close(fd);
 }
 
-void share_dir_entrys(std::vector<struct file_info*>& dir_entrys){
+void share_dir_entrys(std::vector<struct file_info*>* dir_entrys){
   // local variables
   int shm_fd{0};
   char buffer[BUFFER_LENGTH]{};
@@ -30,7 +30,7 @@ void share_dir_entrys(std::vector<struct file_info*>& dir_entrys){
     throw exc::ServerException(strerror(errno));
   }
   // write file entrys into local buffer
-  for (const struct file_info *it : dir_entrys){
+  for (const struct file_info *it : *dir_entrys){
     strcat(buffer, it->file_name);
     strcat(buffer, "-");
   }
@@ -40,7 +40,7 @@ void share_dir_entrys(std::vector<struct file_info*>& dir_entrys){
   close(shm_fd);
 }
 
-void control_directory(const char* dir_name, std::vector<struct file_info*>& dir_entrys){
+void control_directory(const char* dir_name, std::vector<struct file_info*>* dir_entrys){
   // local variables
   short fn_len{0}, ap_len{0}, sm_len{0};
   char abs_path[BUFFER_LENGTH];
@@ -99,7 +99,7 @@ void control_directory(const char* dir_name, std::vector<struct file_info*>& dir
     memcpy(temp->absolute_path, abs_path, ap_len);
     memcpy(temp->semaphore, file_semaphore, sm_len);
     // append the new structure into the dir_entrys vector
-    dir_entrys.push_back(temp);
+    (*dir_entrys).push_back(temp);
     // change owner and group of each entry
     if (chown(abs_path, ROOT_UID, ROOT_GID) == ERROR) {
       std::cout << "\nCould not change owner and group of " << abs_path << ": ";

@@ -22,3 +22,15 @@
 
 ->Wed Nov 29 21:56:17 2023
 	test/f1.txt Read Only access revoked to UID: 1000
+
+->Wed Nov 29 22:50:48 2023
+	test/f2.csv Read Only access granted to UID: 1000
+
+->Wed Nov 29 22:51:26 2023
+	test/f3.json Read & Write access granted to UID: 1001
+
+->Wed Nov 29 22:51:39 2023
+	test/f3.json Read & Write access revoked to UID: 1001
+
+->Wed Nov 29 22:51:47 2023
+	test/f2.csv Read Only access revoked to UID: 1000

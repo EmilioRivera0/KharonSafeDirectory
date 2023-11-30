@@ -2,10 +2,10 @@
 #include "../include/access_manager.h"
 
 // functions definition -------->
-void create_semaphores(const std::vector<struct file_info*> &dir_entrys){
+void create_semaphores(const std::vector<struct file_info*> *dir_entrys){
   // local variables
   sem_t* temp{nullptr};
-  for (const auto it : dir_entrys){
+  for (const auto it : *dir_entrys){
     // create a file semaphore to synchronize operations related to each file
     temp = sem_open(it->semaphore, SEMAPHORE_FLAGS, SEMAPHORE_PERMISSIONS, FILE_SEMAPHORE_INITIAL_VALUE);
     // check if semaphore was opened successfully
@@ -14,13 +14,6 @@ void create_semaphores(const std::vector<struct file_info*> &dir_entrys){
       throw exc::ServerException(strerror(errno));
     }
     sem_close(temp);
-  }
-}
-
-void unlink_semaphores(const std::vector<struct file_info*> &dir_entrys){
-  // unlink all file semaphores
-  for (const auto it : dir_entrys){
-    sem_unlink(it->semaphore);
   }
 }
 
@@ -153,14 +146,46 @@ void* revoke_access(void* args){
   return nullptr;
 }
 
-void access_manager(const std::vector<struct file_info*>& dir_entrys){
+void unlink_semaphores(const std::vector<struct file_info*> *dir_entrys){
+  // unlink all file semaphores
+  for (const auto it : *dir_entrys){
+    sem_unlink(it->semaphore);
+  }
+}
+
+void* poweroff(void* args){
   // local variables
-  short cpfd{0}, count{0}, ap_len{0}, sm_len{0}, index{0}, mode{0};
+  struct close_server_thread_parameters* tp{(struct close_server_thread_parameters*)args};
+  // wait for user input
+  std::cin.get();
+  // close & unlink semaphores
+  sem_close(tp->cwait_sem);
+  close(tp->cpfd);
+  shm_unlink(SHM);
+  sem_unlink(CLIENT_WAIT_SEMAPHORE);
+  unlink(COMMUNICATION_FIFO);
+  unlink_semaphores(tp->dir_entrys);
+  exit(EXIT_SUCCESS);
+  return nullptr;
+}
+
+void access_manager(const std::vector<struct file_info*>* dir_entrys){
+  // local variables
+  int cpfd{0};
+  short count{0}, ap_len{0}, sm_len{0}, index{0}, mode{0};
   char buffer[BUFFER_LENGTH]{}, *token{nullptr};
   uid_t uid{0};
   sem_t *cwait_sem{nullptr};
   pthread_t thread{};
-  struct thread_parameters *tp{};
+  struct thread_parameters *tp{nullptr};
+  struct close_server_thread_parameters* cstp{nullptr};
+
+  // start thread that will wait for user input to close all semaphores, pipes and shm to then terminate the server process
+  cstp = new struct close_server_thread_parameters;
+  cstp->dir_entrys = dir_entrys;
+  cstp->cwait_sem = cwait_sem;
+  cstp->cpfd = cpfd;
+  pthread_create(&thread, NULL, &poweroff, (void*)cstp);
 
   // create a semaphore to synchronize with the client process before accessing the selected file
   cwait_sem = sem_open(CLIENT_WAIT_SEMAPHORE, SEMAPHORE_FLAGS, SEMAPHORE_PERMISSIONS, WAIT_SEMAPHORE_INITIAL_VALUE);
@@ -207,12 +232,12 @@ void access_manager(const std::vector<struct file_info*>& dir_entrys){
       // thread parameters struct need to be located on the heap for it to be accessed by threads
       // allocate heap memory space for thread parameters struct and initialize it
       tp = new struct thread_parameters;
-      ap_len = strlen(dir_entrys[index]->absolute_path)+1;
-      sm_len = strlen(dir_entrys[index]->semaphore)+1;
+      ap_len = strlen((*dir_entrys)[index]->absolute_path)+1;
+      sm_len = strlen((*dir_entrys)[index]->semaphore)+1;
       tp->path = new char[ap_len];
       tp->semaphore = new char[sm_len];
-      memcpy(tp->path, dir_entrys[index]->absolute_path, ap_len);
-      memcpy(tp->semaphore, dir_entrys[index]->semaphore, sm_len);
+      memcpy(tp->path, (*dir_entrys)[index]->absolute_path, ap_len);
+      memcpy(tp->semaphore, (*dir_entrys)[index]->semaphore, sm_len);
       switch (mode) {
         case 0:
           tp->permissions = ENABLE_WRITING;
@@ -242,12 +267,5 @@ void access_manager(const std::vector<struct file_info*>& dir_entrys){
       // this prevents the same client accessing the file in the future without requesting access again
       pthread_create(&thread, NULL, &revoke_access, (void*)tp);
     }
-  } while(true);
-
-  // close & unlink semaphores
-  sem_close(cwait_sem);
-  close(cpfd);
-  sem_unlink(CLIENT_WAIT_SEMAPHORE);
-  unlink(COMMUNICATION_FIFO);
-  unlink_semaphores(dir_entrys);
+  } while(true); 
 }

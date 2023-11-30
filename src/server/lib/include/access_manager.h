@@ -7,6 +7,7 @@
 #include "../include/server_exceptions.h"
 
 #include <semaphore.h>
+#include <sys/mman.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -16,13 +17,13 @@
 
 #include <iostream>
 #include <fstream>
-#include <vector>
 
 // functions declaration -------->
-void access_manager(const std::vector<struct file_info*>&);
-void create_semaphores(const std::vector<struct file_info*> &);
-void unlink_semaphores(const std::vector<struct file_info*> &);
+void access_manager(const std::vector<struct file_info*>*);
+void create_semaphores(const std::vector<struct file_info*>*);
+void unlink_semaphores(const std::vector<struct file_info*>*);
 void* grant_access(void*);
 void* revoke_access(void*);
+void* poweroff(void*);
 
 #endif // !ACCESS_MANAGER_H
