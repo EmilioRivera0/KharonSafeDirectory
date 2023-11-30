@@ -26,6 +26,7 @@ void unlink_semaphores(const std::vector<struct file_info*> &dir_entrys){
 
 void* grant_access(void* args){
   // local variables
+  std::string mode{};
   sem_t *file_sem{nullptr};
   time_t raw;
   struct thread_parameters* tp{(struct thread_parameters*)args};
@@ -53,10 +54,24 @@ void* grant_access(void* args){
       std::cout << "\nThread could not change permissions of " << tp->path << ": ";
       throw exc::ServerException(strerror(errno));
     }
+    // define file permissions for logging
+    switch (tp->mode) {
+      case 0:
+        mode = "Write Only";
+        break;
+      case 1:
+        mode = "Read Only";
+        break;
+      case 2:
+        mode = "Read & Write";
+        break;
+        default:
+          break;
+    }
     // get current time for logging
     time(&raw);
     // log action
-    log << "->" << asctime(localtime(&raw)) << "\t" << tp->path << " access granted to UID: " << tp->uid << std::endl;
+    log << "\n->" << asctime(localtime(&raw)) << "\t" << tp->path << " " << mode << " access granted to UID: " << tp->uid << std::endl;
     
     // release file semaphore, log file and terminate thread
     sem_post(file_sem);
@@ -73,6 +88,7 @@ void* grant_access(void* args){
 
 void* revoke_access(void* args){
   // local variables
+  std::string mode{};
   sem_t *file_sem{nullptr};
   time_t raw;
   struct thread_parameters* tp{(struct thread_parameters*)args};
@@ -100,10 +116,25 @@ void* revoke_access(void* args){
       std::cout << "\nCould not change permissions of " << tp->path << ": ";
       throw exc::ServerException(strerror(errno));
     }
+    // define file permissions for logging
+    switch (tp->mode) {
+      case 0:
+        mode = "Write Only";
+        break;
+      case 1:
+        mode = "Read Only";
+        break;
+      case 2:
+        mode = "Read & Write";
+        break;
+        default:
+          break;
+    }
+
     // get current time for logging
     time(&raw);
     // log action
-    log << "->" << asctime(localtime(&raw)) << "\t" << tp->path << " access revoked to UID: " << tp->uid << std::endl;
+    log << "\n->" << asctime(localtime(&raw)) << "\t" << tp->path << " " << mode << " access revoked to UID: " << tp->uid << std::endl;
   
     // release file semaphore, log file and terminate thread
     sem_post(file_sem);
@@ -124,8 +155,9 @@ void* revoke_access(void* args){
 
 void access_manager(const std::vector<struct file_info*>& dir_entrys){
   // local variables
-  short cpfd{0}, count{0}, ap_len{0}, sm_len{0};
-  char buffer[BUFFER_LENGTH]{};
+  short cpfd{0}, count{0}, ap_len{0}, sm_len{0}, index{0}, mode{0};
+  char buffer[BUFFER_LENGTH]{}, *token{nullptr};
+  uid_t uid{0};
   sem_t *cwait_sem{nullptr};
   pthread_t thread{};
   struct thread_parameters *tp{};
@@ -139,6 +171,7 @@ void access_manager(const std::vector<struct file_info*>& dir_entrys){
   }
   // create the semaphores to control the access to each file
   create_semaphores(dir_entrys);
+
   // create communication fifo
   if (mkfifo(COMMUNICATION_FIFO, FIFO_PERMISSIONS) == ERROR) {
     std::cout << "\nCould not create " << COMMUNICATION_FIFO << " FIFO: ";
@@ -164,17 +197,37 @@ void access_manager(const std::vector<struct file_info*>& dir_entrys){
     }
     else{
       std::cout << "New Message: " << buffer << std::endl;
+      // extract data from received message
+      token = strtok(buffer, "-");
+      mode = atoi(token);
+      token = strtok(nullptr, "-");
+      index = atoi(token);
+      token = strtok(nullptr, "-");
+      uid = atoi(token);
       // thread parameters struct need to be located on the heap for it to be accessed by threads
       // allocate heap memory space for thread parameters struct and initialize it
       tp = new struct thread_parameters;
-      ap_len = strlen(dir_entrys[0]->absolute_path)+1;
-      sm_len = strlen(dir_entrys[0]->semaphore)+1;
+      ap_len = strlen(dir_entrys[index]->absolute_path)+1;
+      sm_len = strlen(dir_entrys[index]->semaphore)+1;
       tp->path = new char[ap_len];
       tp->semaphore = new char[sm_len];
-      memcpy(tp->path, dir_entrys[0]->absolute_path, ap_len);
-      memcpy(tp->semaphore, dir_entrys[0]->semaphore, sm_len);
-      tp->permissions = ENABLE_READWRIT;
-      tp->uid = 1000;
+      memcpy(tp->path, dir_entrys[index]->absolute_path, ap_len);
+      memcpy(tp->semaphore, dir_entrys[index]->semaphore, sm_len);
+      switch (mode) {
+        case 0:
+          tp->permissions = ENABLE_WRITING;
+          break;
+        case 1:
+          tp->permissions = ENABLE_READING;
+          break;
+        case 2:
+          tp->permissions = ENABLE_READWRIT;
+          break;
+        default:
+          break;
+      }
+      tp->mode = mode;
+      tp->uid = uid;
       tp->gid = ROOT_GID;
       // create first thread to grant the requesting client access to the specified file
       usleep(1000);

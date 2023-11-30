@@ -6,6 +6,7 @@
 int main (int argc, char **argv) {
   // main function variables
   std::vector<struct file_info*> dir_entrys{};
+  // program execution starting point
   try {
     // check if command ir executed as a root user
     if (getuid() != ROOT_UID) 

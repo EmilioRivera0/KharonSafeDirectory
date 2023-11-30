@@ -1,12 +1,24 @@
-->Mon Nov 27 12:07:46 2023
-	test/f2.csv access granted to UID: 1000
-->Mon Nov 27 12:07:46 2023
-	test/f2.csv access revoked to UID: 1000
-->Tue Nov 28 11:58:00 2023
-	test/f2.csv access granted to UID: 1000
-->Tue Nov 28 11:58:39 2023
-	test/f2.csv access revoked to UID: 1000
-->Tue Nov 28 11:58:39 2023
-	test/f2.csv access granted to UID: 1000
-->Tue Nov 28 11:58:53 2023
-	test/f2.csv access revoked to UID: 1000
+
+->Wed Nov 29 21:52:18 2023
+	test/f1.txt Read & Write access granted to UID: 1000
+
+->Wed Nov 29 21:52:50 2023
+	test/f2.csv Read Only access granted to UID: 1001
+
+->Wed Nov 29 21:53:06 2023
+	test/f1.txt Read & Write access revoked to UID: 1000
+
+->Wed Nov 29 21:53:48 2023
+	test/f2.csv Read Only access revoked to UID: 1001
+
+->Wed Nov 29 21:53:48 2023
+	test/f2.csv Write Only access granted to UID: 1000
+
+->Wed Nov 29 21:54:13 2023
+	test/f2.csv Write Only access revoked to UID: 1000
+
+->Wed Nov 29 21:56:15 2023
+	test/f1.txt Read Only access granted to UID: 1000
+
+->Wed Nov 29 21:56:17 2023
+	test/f1.txt Read Only access revoked to UID: 1000

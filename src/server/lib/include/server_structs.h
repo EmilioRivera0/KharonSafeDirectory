@@ -17,6 +17,7 @@ struct thread_parameters{
   gid_t gid;
   mode_t permissions;
   char* semaphore;
+  short mode;
 };
 
 #endif // !SERVER_STRUCTS_H
