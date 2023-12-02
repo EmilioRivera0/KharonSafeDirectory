@@ -153,6 +153,14 @@ void unlink_semaphores(const std::vector<struct file_info*> *dir_entrys){
   }
 }
 
+void free_memory(const std::vector<struct file_info*> *dir_entrys){
+  for (const struct file_info* it : *dir_entrys){
+    delete it->file_name;
+    delete it->absolute_path;
+    delete it;
+  }
+}
+
 void* poweroff(void* args){
   // local variables
   struct close_server_thread_parameters* tp{(struct close_server_thread_parameters*)args};
@@ -165,6 +173,7 @@ void* poweroff(void* args){
   sem_unlink(CLIENT_WAIT_SEMAPHORE);
   unlink(COMMUNICATION_FIFO);
   unlink_semaphores(tp->dir_entrys);
+  free_memory(tp->dir_entrys);
   exit(EXIT_SUCCESS);
   return nullptr;
 }

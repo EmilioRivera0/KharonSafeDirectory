@@ -22,10 +22,13 @@ int main (int argc, char **argv) {
   
   // program execution starting point
   try {
+    // get directory entrys provided by the server
     get_dir_entrys(dir_entrys);
+    // declare & define UserSystem object
     UserSystem us = UserSystem(dir_entrys);
     do {
       do {
+        // display principal menu
         option = us.principal_menu();
         switch (option)
         {
@@ -40,8 +43,9 @@ int main (int argc, char **argv) {
             break;
         }
       } while (!exit && !isUser);
-  
+      // display logged in menu 
       while (isUser) {
+        // ask user which file it wants to access, the permissions and system user to grant the access
         option = us.loggedin_menu();
         switch (option)
         {

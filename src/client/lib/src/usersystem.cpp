@@ -162,6 +162,7 @@ void UserSystem::access_file(short mode, short index, uid_t uid){
   usleep(100);
   sem_wait(file_sem);
   // wait for user input to release file control
+  std::cout << "\tAccess Gained" << std::endl;
   std::cout << "1. Release File\nOp-> ";
   std::cin >> op;
   sem_post(file_sem);

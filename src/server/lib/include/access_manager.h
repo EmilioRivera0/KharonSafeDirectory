@@ -22,6 +22,7 @@
 void access_manager(const std::vector<struct file_info*>*);
 void create_semaphores(const std::vector<struct file_info*>*);
 void unlink_semaphores(const std::vector<struct file_info*>*);
+void free_memory(const std::vector<struct file_info*> *);
 void* grant_access(void*);
 void* revoke_access(void*);
 void* poweroff(void*);
