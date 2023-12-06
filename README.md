@@ -2,7 +2,7 @@
 Kharon Safe Directory project consists of a pair of softwares used to protect, manage and log the access to a directory and its entries through a client server architecture. As mentioned previously, two main processes are contained in this project being the server and one or multiple clients.
 
 ## Server
-The server process is in charge of taking control of the specified directory, changing its owner and group to root as well as removing all the permissions of the directory’s entries and only leaving the read & execute permissions to the directory, enabling anyone to view the content of the directory. This process will wait for an incoming message from a client through a FIFO containing the file it wants to access to, the UID of the user to make owner of the file and the permissions to grant to the new owner of the file. Once an incoming message is received, it will process the contents of the message and grant the specified access permissions to the chosen file and system user specified by the client, logging this action. Finally it will wait for the client to release the file so it can establish the owner to root as well as removing the permissions from the file and logging this action permitting a previously waiting client to access the same file with its specified owner and permissions.
+The server process is in charge of taking control of the specified directory, changing its owner and group to root as well as removing all the permissions of the directory’s entries and only leaving the read & execute permissions to the directory, enabling anyone to view the content of the directory. This process will wait for an incoming message from a client through a FIFO containing the file it wants to access to, the UID of the user to make owner of the file and the permissions to grant to the new owner of the file. Once an incoming message is received, it will process the contents of the message and grant the specified access permissions to the chosen file and system user specified by the client, logging this action. Finally it will wait for the client to release the file so it can establish the owner to root as well as removing the permissions from the file and logging this action permitting a previously waiting client to access the same file with its specified owner and permissions.\
 This cycle of listening for a new message, processing it, granting access, waiting for the client to release the file and revoking access can be done parallelly thanks to the implementation of multithreading, process & thread synchronization and IPC. This enables multiple clients to be connected and communicate with the server simultaneously and for multiple clients to be in a waiting queue to access a file without generating any race condition with the Input Output operations done as well as maintaining an ordered access, monitoring and logging from the server.
 
 ## Client
@@ -56,6 +56,6 @@ src/
 
 ## Authors
 Frontend:
-- [@JuanPabloGHC](https://github.com/JuanPabloGHC)
-Bachend:
+- [@JuanPabloGHC](https://github.com/JuanPabloGHC)\
+Backend:\
 - [@EmilioRivera0](https://github.com/EmilioRivera0)
