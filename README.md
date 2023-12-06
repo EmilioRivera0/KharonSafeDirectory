@@ -55,7 +55,7 @@ src/
 **Client & Server** POSIX Threads, POSIX Semaphores, POSIX Shared Memory, Linux FIFOs, Linux Filesystem API, C & C++ Standard Libraries and Unix C Standard library.
 
 ## Authors
-Frontend:
-- [@JuanPabloGHC](https://github.com/JuanPabloGHC)\
-Backend:\
+### Frontend:
+- [@JuanPabloGHC](https://github.com/JuanPabloGHC)
+### Backend:
 - [@EmilioRivera0](https://github.com/EmilioRivera0)
